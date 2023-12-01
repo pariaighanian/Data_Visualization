@@ -1,0 +1,99 @@
+---
+title: "Shopping Behavior - Data Visualization"
+author: "Paria Ighanian"
+date: "2023-11-27"
+output: html_document
+
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+
+```{r}
+data <- read.csv('shopping_behavior.csv')
+dim(data)
+```
+The dataset consists of 3900 rows and 18 columns.
+
+```{r}
+str(data)
+
+```
+```{r}
+colnames(data) <- c('customer_id', 'age', 'gender', 'item_purchased', 'category',
+                  'purchase_amount_usd', 'location', 'size', 'color', 'season',
+                  'review_rating', 'subscription_status', 'shipping_type',
+                  'discount_applied', 'promo_code_used', 'previous_purchases',
+                  'payment_method', 'frequency_of_purchases')
+
+```
+
+
+
+# Exploring Data
+## Customer Distribution by Gender
+We would like to understand the distribution of customers based on their gender. 
+
+```{r}
+df_percentage <- (data |>
+  group_by(gender) |>
+  summarise(percentage = n() / nrow(data) * 100))
+
+ggplot(df_percentage, aes(x = gender, y=percentage, fill = gender)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = sprintf("%.1f%%", percentage)),
+            position = position_stack(vjust = 0.5)) +
+
+  labs(title = "Customer Distribution by Gender",
+       x = "Gender",
+       y = "Percentage")+
+  scale_y_continuous(labels = scales::percent_format(scale = 1))+
+  theme(axis.title.y = element_text(margin = margin(r = 10)), legend.position = "none")
+
+
+```
+
+## Category Distribution by Gender
+We would like to know if there are potential patterns among different age groups within each gender.
+```{r}
+percentage_data <- (data |>
+  group_by(gender, category) |>
+  summarise(count = n()) |>
+  group_by(gender) |>
+  mutate(percentage = (count / sum(count)) * 100))
+
+ggplot(percentage_data, aes(x = gender, y = percentage, fill = category, label=sprintf("%.1f%%", percentage))) +
+  geom_bar(position = "stack", stat = "identity", alpha = 0.7) +
+    geom_text(position = position_stack(vjust = 0.5)) +
+
+  labs(title = "Category Distribution by Gender",
+       x = "Gender",
+       y = "Percentage",
+      fill = "Category") +
+  scale_y_continuous(labels = scales::percent_format(scale = 1))+
+  theme_minimal()
+```
+
+## Number of Purchases by Age
+Delve into our customer demographics to discover the standout performers among all age groups.
+```{r}
+purchase_counts <- data |>
+  group_by(age) |>
+  summarise(purchase_count = n())
+
+ggplot(purchase_counts, aes(x = factor(age), y = purchase_count)) +
+  geom_col(fill = "lightblue") +
+  geom_line(aes(group = 1), color = "blue", size = 1) +
+  labs(title = "Number of Purchases by Age",
+       x = "Age",
+       y = "Number of Purchases") +
+  theme_minimal()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+```
+
+
